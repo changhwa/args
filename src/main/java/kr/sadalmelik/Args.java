@@ -30,7 +30,17 @@ public class Args {
         char elementId = element.charAt(0);
         String elementTail = element.substring(1);
         validateSchemaElementId(elementId);
+        setArgsType(elementId, elementTail);   //TODO : 메소드명 정하기
+    }
 
+    private void validateSchemaElementId(char elementId) throws ParseException {
+        if (!Character.isLetter(elementId)) {
+            throw new ParseException(
+                    "Bad character:" + elementId + "in Args format: " + schema, 0);
+        }
+    }
+
+    private void setArgsType(char elementId, String elementTail) throws ParseException {
         if(elementTail.length() == 0)
             argsMap.put(elementId, new BooleanArgsTypeImpl());
         else if (elementTail.equals("*"))
@@ -41,14 +51,6 @@ public class Args {
             throw new ParseException(
                     String.format("Argument: %c has invalid format: %s.",
                             elementId, elementTail), 0);
-
-    }
-
-    private void validateSchemaElementId(char elementId) throws ParseException {
-        if (!Character.isLetter(elementId)) {
-            throw new ParseException(
-                    "Bad character:" + elementId + "in Args format: " + schema, 0);
-        }
     }
 
     private boolean parseArguments() throws ArgsException {
