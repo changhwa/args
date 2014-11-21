@@ -8,14 +8,13 @@ public class Args {
     private String[] args;
     private boolean valid = true;
     private Set<Character> unexpectedArguments = new TreeSet<Character>();
-    private Map<Character, Boolean> booleanArgs = new HashMap<Character, Boolean>();
-    private Map<Character, String> stringArgs = new HashMap<Character, String>();
-    private Map<Character, Integer> intArgs = new HashMap<Character, Integer>();
     private Set<Character> argsFound = new HashSet<Character>();
     private int currentArgument;
     private char errorArgumentId = '\0';
     private String errorParameter = "TILT";
     private ErrorCode errorCode = ErrorCode.OK;
+
+    private Map<Character, ArgsType> argsMap;
 
     private enum ErrorCode {
         OK, MISSING_STRING, MISSING_INTEGER, INVALID_INTEGER, UNEXPECTED_ARGUMENT
@@ -24,6 +23,7 @@ public class Args {
     public Args(String schema, String[] args) throws ParseException {
         this.schema = schema;
         this.args = args;
+        this.argsMap = new HashMap<Character, ArgsType>();
         valid = parse();
     }
 
@@ -52,18 +52,13 @@ public class Args {
         char elementId = element.charAt(0);
         String elementTail = element.substring(1);
         validateSchemaElementId(elementId);
-        if (isBooleanSchemaElement(elementTail))
-            parseBooleanSchemaElement(elementId);
-        else if (isStringSchemaElement(elementTail))
+        if (isStringSchemaElement(elementTail))
             parseStringSchemaElement(elementId);
-        else if (isIntegerSchemaElement(elementTail)) {
-            parseIntegerSchemaElement(elementId);
-
-        } else {
-            throw new ParseException(
-                    String.format("Argument: %c has invalid format: %s.",
-                            elementId, elementTail), 0);
-        }
+//        else {
+//            throw new ParseException(
+//                    String.format("Argument: %c has invalid format: %s.",
+//                            elementId, elementTail), 0);
+//        }
     }
 
     private void validateSchemaElementId(char elementId) throws ParseException {
@@ -73,16 +68,8 @@ public class Args {
         }
     }
 
-    private void parseBooleanSchemaElement(char elementId) {
-        booleanArgs.put(elementId, false);
-    }
-
-    private void parseIntegerSchemaElement(char elementId) {
-        intArgs.put(elementId, 0);
-    }
-
     private void parseStringSchemaElement(char elementId) {
-        stringArgs.put(elementId, "");
+        argsMap.put(elementId , new StringArgsTypeImpl());
     }
 
     private boolean isStringSchemaElement(String elementTail) {
@@ -126,63 +113,21 @@ public class Args {
     }
 
     private boolean setArgument(char argChar) throws ArgsException {
-        if (isBooleanArg(argChar))
-            setBooleanArg(argChar, true);
-        else if (isStringArg(argChar))
+        if(argsMap.get(argChar) != null)
             setStringArg(argChar);
-        else if (isIntArg(argChar))
-            setIntArg(argChar);
-        else
-            return false;
         return true;
-    }
-
-    private boolean isIntArg(char argChar) {
-        return intArgs.containsKey(argChar);
-    }
-
-    private void setIntArg(char argChar) throws ArgsException {
-        currentArgument++;
-        String parameter = null;
-        try {
-            parameter = args[currentArgument];
-            intArgs.put(argChar, new Integer(parameter));
-        } catch (ArrayIndexOutOfBoundsException e) {
-            valid = false;
-            errorArgumentId = argChar;
-            errorCode = ErrorCode.MISSING_INTEGER;
-            throw new ArgsException();
-        } catch (NumberFormatException e) {
-            valid = false;
-            errorArgumentId = argChar;
-            errorParameter = parameter;
-            errorCode = ErrorCode.INVALID_INTEGER;
-            throw new ArgsException();
-        }
     }
 
     private void setStringArg(char argChar) throws ArgsException {
         currentArgument++;
         try {
-            stringArgs.put(argChar, args[currentArgument]);
+            argsMap.get(argChar).set(Arrays.asList(args),3);
         } catch (ArrayIndexOutOfBoundsException e) {
             valid = false;
             errorArgumentId = argChar;
             errorCode = ErrorCode.MISSING_STRING;
             throw new ArgsException();
         }
-    }
-
-    private boolean isStringArg(char argChar) {
-        return stringArgs.containsKey(argChar);
-    }
-
-    private void setBooleanArg(char argChar, boolean value) {
-        booleanArgs.put(argChar, value);
-    }
-
-    private boolean isBooleanArg(char argChar) {
-        return booleanArgs.containsKey(argChar);
     }
 
     public int cardinality() {
@@ -225,28 +170,8 @@ public class Args {
         return message.toString();
     }
 
-    public boolean getBoolean(char arg) {
-        return falseIfNull(booleanArgs.get(arg));
-    }
-
-    private boolean falseIfNull(Boolean b) {
-        return b != null && b;
-    }
-
     public String getString(char arg) {
-        return blankIfNull(stringArgs.get(arg));
-    }
-
-    public int getInt(char arg) {
-        return zeroIfNull(intArgs.get(arg));
-    }
-
-    private int zeroIfNull(Integer i) {
-        return i == null ? 0 : i;
-    }
-
-    private String blankIfNull(String s) {
-        return s == null ? "" : s;
+        return String.valueOf(argsMap.get(arg).get());
     }
 
     public boolean has(char arg) {
@@ -257,17 +182,15 @@ public class Args {
         return valid;
     }
 
-    private class ArgsException extends Exception {
-    }
 
     public static void main(String[] args) {
         try {
             Args arg = new Args("l,p#,d*", args);
-            boolean logging = arg.getBoolean('l');
-            int port = arg.getInt('p');
+            //boolean logging = arg.getBoolean('l');
+            //int port = arg.getInt('p');
             String directory = arg.getString('d');
-            System.out.println("logging : " + logging);
-            System.out.println("port : " + port);
+//            System.out.println("logging : " + logging);
+//            System.out.println("port : " + port);
             System.out.println("directory : " + directory);
         } catch (ParseException e) {
             e.printStackTrace();
