@@ -31,7 +31,9 @@ public class Args {
         String elementTail = element.substring(1);
         validateSchemaElementId(elementId);
 
-        if (elementTail.equals("*"))
+        if(elementTail.length() == 0)
+            argsMap.put(elementId, new BooleanArgsTypeImpl());
+        else if (elementTail.equals("*"))
             argsMap.put(elementId , new StringArgsTypeImpl());
         else if(elementTail.equals("#"))
             argsMap.put(elementId , new IntegerArgsTypeImpl());
@@ -60,7 +62,6 @@ public class Args {
 
     private boolean setArgument(char argChar) throws ArgsException {
         if(argsMap.containsKey(argChar)){
-            currentArgument++;
             try {
                 argsMap.get(argChar).set(args, currentArgument);
             } catch (ArrayIndexOutOfBoundsException e) {
@@ -76,6 +77,10 @@ public class Args {
 
     public int getInt(char arg) {
         return (Integer)argsMap.get(arg).get();
+    }
+
+    public boolean getBoolean(char arg){
+        return (Boolean)argsMap.get(arg).get();
     }
 
 }

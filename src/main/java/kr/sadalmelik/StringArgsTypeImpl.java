@@ -9,7 +9,7 @@ public class StringArgsTypeImpl implements ArgsType<String>{
     @Override
     public void set(List<String> args, int index) throws ArgsException {
         // 예외처리?
-        this.arg = args.get(index);
+        this.arg = args.get(++index);
     }
 
     @Override

@@ -8,7 +8,7 @@ public class IntegerArgsTypeImpl implements ArgsType<Integer> {
 
     @Override
     public void set(List<String> args, int index) throws ArgsException {
-        this.arg = Integer.parseInt(args.get(index));
+        this.arg = Integer.parseInt(args.get(++index));
     }
 
     @Override

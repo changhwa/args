@@ -28,15 +28,15 @@ public class ArgsTest {
     }
 
     @Test
-    @Ignore
     public void argsBooleanTest() throws Exception{
-        //assertThat(arg.getBoolean('l'), is(true));
+        assertThat(arg.getBoolean('l'), is(true));
     }
 
     @Test
     public void argsTotalTest() throws Exception{
         assertThat(arg.getString('d'), is("/test/test"));
         assertThat(arg.getInt('p'), is(2000));
+        assertThat(arg.getBoolean('l'), is(true));
     }
 
 
