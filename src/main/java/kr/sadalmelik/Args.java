@@ -6,19 +6,10 @@ import java.util.*;
 public class Args {
     private String schema;
     private boolean valid = true;
-    private Set<Character> unexpectedArguments = new TreeSet<Character>();
-    private Set<Character> argsFound = new HashSet<Character>();
     private int currentArgument;
-    private char errorArgumentId = '\0';
-    private String errorParameter = "TILT";
-    private ErrorCode errorCode = ErrorCode.OK;
 
     private Map<Character, ArgsType> argsMap;
     private List<String> args;
-
-    private enum ErrorCode {
-        OK, MISSING_STRING, MISSING_INTEGER, INVALID_INTEGER, UNEXPECTED_ARGUMENT
-    }
 
     public Args(String schema, String[] args) throws ParseException {
         this.schema = schema;
@@ -65,14 +56,6 @@ public class Args {
         }
     }
 
-    private boolean isBooleanSchemaElement(String elementTail) {
-        return elementTail.length() == 0;
-    }
-
-    private boolean isIntegerSchemaElement(String elementTail) {
-        return elementTail.equals("#");
-    }
-
     private boolean parseArguments() throws ArgsException {
         for(String arg: args){
             parseArgument(arg);
@@ -87,13 +70,7 @@ public class Args {
     }
 
     private void parseElement(char argChar) throws ArgsException {
-        if (setArgument(argChar))
-            argsFound.add(argChar);
-        else {
-            unexpectedArguments.add(argChar);
-            errorCode = ErrorCode.UNEXPECTED_ARGUMENT;
-            valid = false;
-        }
+        setArgument(argChar);
     }
 
     private boolean setArgument(char argChar) throws ArgsException {
@@ -102,76 +79,22 @@ public class Args {
             try {
                 argsMap.get(argChar).set(args, currentArgument);
             } catch (ArrayIndexOutOfBoundsException e) {
-                valid = false;
-                errorArgumentId = argChar;
-                errorCode = ErrorCode.MISSING_STRING;
                 throw new ArgsException();
             }
         }
         return true;
     }
 
-    public int cardinality() {
-        return argsFound.size();
-    }
-
-    public String usage() {
-        if (schema.length() > 0)
-            return "-[" + schema + "]";
-        else
-            return "";
-    }
-
-    public String errorMessage() throws Exception {
-        switch (errorCode) {
-            case OK:
-                throw new Exception("TILT: Should not get here.");
-            case UNEXPECTED_ARGUMENT:
-                return unexpectedArgumentMessage();
-            case MISSING_STRING:
-                return String.format("Could not find string parameter for -%c.",
-                        errorArgumentId);
-            case INVALID_INTEGER:
-                return String.format("Argument -%c expects an integer but was '%s'.",
-                        errorArgumentId, errorParameter);
-            case MISSING_INTEGER:
-                return String.format("Could not find integer parameter for -%c.",
-                        errorArgumentId);
-        }
-        return "";
-    }
-
-
-    private String unexpectedArgumentMessage() {
-        StringBuffer message = new StringBuffer("Argument(s) -");
-        for (char c : unexpectedArguments) {
-            message.append(c);
-        }
-        message.append(" unexpected.");
-        return message.toString();
-    }
 
     public String getString(char arg) {
         return String.valueOf(argsMap.get(arg).get());
-    }
-
-    public boolean has(char arg) {
-        return argsFound.contains(arg);
-    }
-
-    public boolean isValid() {
-        return valid;
     }
 
 
     public static void main(String[] args) {
         try {
             Args arg = new Args("l,p#,d*", args);
-            //boolean logging = arg.getBoolean('l');
-            //int port = arg.getInt('p');
             String directory = arg.getString('d');
-//            System.out.println("logging : " + logging);
-//            System.out.println("port : " + port);
             System.out.println("directory : " + directory);
         } catch (ParseException e) {
             e.printStackTrace();
