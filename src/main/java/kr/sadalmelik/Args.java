@@ -5,7 +5,6 @@ import java.util.*;
 
 public class Args {
     private String schema;
-    private String[] args;
     private boolean valid = true;
     private Set<Character> unexpectedArguments = new TreeSet<Character>();
     private Set<Character> argsFound = new HashSet<Character>();
@@ -15,6 +14,7 @@ public class Args {
     private ErrorCode errorCode = ErrorCode.OK;
 
     private Map<Character, ArgsType> argsMap;
+    private List<String> args;
 
     private enum ErrorCode {
         OK, MISSING_STRING, MISSING_INTEGER, INVALID_INTEGER, UNEXPECTED_ARGUMENT
@@ -22,13 +22,13 @@ public class Args {
 
     public Args(String schema, String[] args) throws ParseException {
         this.schema = schema;
-        this.args = args;
+        this.args = Arrays.asList(args);
         this.argsMap = new HashMap<Character, ArgsType>();
         valid = parse();
     }
 
     private boolean parse() throws ParseException {
-        if (schema.length() == 0 && args.length == 0)
+        if (schema.length() == 0 && args.size() == 0)
             return true;
         parseSchema();
         try {
@@ -85,9 +85,9 @@ public class Args {
     }
 
     private boolean parseArguments() throws ArgsException {
-        for (currentArgument = 0; currentArgument < args.length; currentArgument++) {
-            String arg = args[currentArgument];
+        for(String arg: args){
             parseArgument(arg);
+            currentArgument++;
         }
         return true;
     }
@@ -113,21 +113,18 @@ public class Args {
     }
 
     private boolean setArgument(char argChar) throws ArgsException {
-        if(argsMap.get(argChar) != null)
-            setStringArg(argChar);
-        return true;
-    }
-
-    private void setStringArg(char argChar) throws ArgsException {
-        currentArgument++;
-        try {
-            argsMap.get(argChar).set(Arrays.asList(args),3);
-        } catch (ArrayIndexOutOfBoundsException e) {
-            valid = false;
-            errorArgumentId = argChar;
-            errorCode = ErrorCode.MISSING_STRING;
-            throw new ArgsException();
+        if(argsMap.containsKey(argChar)){
+            currentArgument++;
+            try {
+                argsMap.get(argChar).set(args, currentArgument);
+            } catch (ArrayIndexOutOfBoundsException e) {
+                valid = false;
+                errorArgumentId = argChar;
+                errorCode = ErrorCode.MISSING_STRING;
+                throw new ArgsException();
+            }
         }
+        return true;
     }
 
     public int cardinality() {
