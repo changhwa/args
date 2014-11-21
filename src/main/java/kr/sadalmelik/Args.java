@@ -43,10 +43,11 @@ public class Args {
     }
 
     private boolean parseArguments() throws ArgsException {
-        for(String arg: args){
-            parseArgument(arg);
-            currentArgument++;
+
+        for(currentArgument = 0; currentArgument < args.size(); currentArgument++){
+            parseArgument(args.get(currentArgument));
         }
+
         return true;
     }
 
