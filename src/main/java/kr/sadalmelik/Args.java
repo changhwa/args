@@ -52,13 +52,10 @@ public class Args {
         char elementId = element.charAt(0);
         String elementTail = element.substring(1);
         validateSchemaElementId(elementId);
-        if (isStringSchemaElement(elementTail))
-            parseStringSchemaElement(elementId);
-//        else {
-//            throw new ParseException(
-//                    String.format("Argument: %c has invalid format: %s.",
-//                            elementId, elementTail), 0);
-//        }
+
+        //굳이 한줄인데.. 메소드를 만들 필요가 있나.
+        if (elementTail.equals("*"))
+            argsMap.put(elementId , new StringArgsTypeImpl());
     }
 
     private void validateSchemaElementId(char elementId) throws ParseException {
@@ -66,14 +63,6 @@ public class Args {
             throw new ParseException(
                     "Bad character:" + elementId + "in Args format: " + schema, 0);
         }
-    }
-
-    private void parseStringSchemaElement(char elementId) {
-        argsMap.put(elementId , new StringArgsTypeImpl());
-    }
-
-    private boolean isStringSchemaElement(String elementTail) {
-        return elementTail.equals("*");
     }
 
     private boolean isBooleanSchemaElement(String elementTail) {
@@ -94,12 +83,7 @@ public class Args {
 
     private void parseArgument(String arg) throws ArgsException {
         if (arg.startsWith("-"))
-            parseElements(arg);
-    }
-
-    private void parseElements(String arg) throws ArgsException {
-        for (int i = 1; i < arg.length(); i++)
-            parseElement(arg.charAt(i));
+            parseElement(arg.charAt(1));
     }
 
     private void parseElement(char argChar) throws ArgsException {
