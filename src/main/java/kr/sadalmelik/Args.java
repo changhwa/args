@@ -33,6 +33,8 @@ public class Args {
 
         if (elementTail.equals("*"))
             argsMap.put(elementId , new StringArgsTypeImpl());
+        else if(elementTail.equals("#"))
+            argsMap.put(elementId , new IntegerArgsTypeImpl());
     }
 
     private void validateSchemaElementId(char elementId) throws ParseException {
@@ -70,6 +72,10 @@ public class Args {
 
     public String getString(char arg) {
         return (String)argsMap.get(arg).get();
+    }
+
+    public int getInt(char arg) {
+        return (Integer)argsMap.get(arg).get();
     }
 
 }
