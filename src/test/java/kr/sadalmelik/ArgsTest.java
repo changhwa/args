@@ -3,6 +3,9 @@ package kr.sadalmelik;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.experimental.theories.suppliers.TestedOn;
+
+import java.text.ParseException;
 
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.*;
@@ -37,6 +40,11 @@ public class ArgsTest {
         assertThat(arg.getString('d'), is("/test/test"));
         assertThat(arg.getInt('p'), is(2000));
         assertThat(arg.getBoolean('l'), is(true));
+    }
+
+    @Test(expected = ParseException.class)
+    public void argsArgumentExceptionTest() throws Exception{
+        arg = new Args("l,p#,d!", new String[]{"-l", "-p", "2000", "-d", "/test/test"});
     }
 
 

@@ -37,6 +37,11 @@ public class Args {
             argsMap.put(elementId , new StringArgsTypeImpl());
         else if(elementTail.equals("#"))
             argsMap.put(elementId , new IntegerArgsTypeImpl());
+        else
+            throw new ParseException(
+                    String.format("Argument: %c has invalid format: %s.",
+                            elementId, elementTail), 0);
+
     }
 
     private void validateSchemaElementId(char elementId) throws ParseException {
